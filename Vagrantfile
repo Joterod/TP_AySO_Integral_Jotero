@@ -3,6 +3,48 @@
 
 Vagrant.configure("2") do |config|
 
+  config.vm.define "produccion" do |produccion|
+    produccion.vm.box = "generic/fedora36"
+    produccion.vm.hostname = "produccion"
+    produccion.vm.network "private_network", :name => '', ip: "192.168.56.5"
+    
+    # Comparto la carpeta del host donde estoy parado contra la vm
+    produccion.vm.synced_folder 'compartido_produccion/', '/home/vagrant/compartido', 
+    owner: 'vagrant', group: 'vagrant' 
+
+      # Agrega la key Privada de ssh en .vagrant/machines/default/virtualbox/private_key
+      produccion.ssh.insert_key = true
+      # Agrego un nuevo disco 
+      produccion.vm.disk :disk, size: "10GB", name: "#{produccion.vm.hostname}_extra_storage"
+      produccion.vm.disk :disk, size: "5GB", name: "#{produccion.vm.hostname}_extra_storage2"
+      produccion.vm.disk :disk, size: "2GB", name: "#{produccion.vm.hostname}_extra_storage3"
+      produccion.vm.disk :disk, size: "1GB", name: "#{produccion.vm.hostname}_extra_storage4"
+
+      produccion.vm.provider "virtualbox" do |vb|
+        vb.memory = "1024"
+        vb.name = "produccion"
+        vb.cpus = 1
+        vb.linked_clone = true
+        # Seteo controladora Grafica
+        vb.customize ['modifyvm', :id, '--graphicscontroller', 'vmsvga']      
+      end    
+      # Puedo Ejecutar un script que esta en un archivo
+      produccion.vm.provision "shell", path: "script_Enable_ssh_password.sh"
+      produccion.vm.provision "shell", privileged: false, inline: <<-SHELL
+      # Los comandos aca se ejecutan como vagrant
+  
+      mkdir -p /home/vagrant/repogit
+      cd /home/vagrant/repogit
+      echo "192.168.56.4 testing" | sudo tee -a /etc/hosts
+      
+      # Copiar la clave pública de producción a testing a produccion
+      ssh-copy-id -i ".vagrant/machines/produccion/virtualbox/private_key" vagrant@testing
+      # No requerir pass de sudo
+      echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
+      sudo chmod 0440 /etc/sudoers.d/vagrant
+    SHELL
+    end
+
   config.vm.define "testing" do |testing|
     testing.vm.box = "ubuntu/jammy64"
     testing.vm.hostname = "testing"
@@ -15,10 +57,10 @@ Vagrant.configure("2") do |config|
       # Agrega la key Privada de ssh en .vagrant/machines/default/virtualbox/private_key
       testing.ssh.insert_key = true
       # Agrego un nuevo disco 
-      testing.vm.disk :disk, size: "5GB", name: "#{testing.vm.hostname}_extra_storage_1"
-      testing.vm.disk :disk, size: "3GB", name: "#{testing.vm.hostname}_extra_storage_2"
-      testing.vm.disk :disk, size: "2GB", name: "#{testing.vm.hostname}_extra_storage_3"
-      testing.vm.disk :disk, size: "1GB", name: "#{testing.vm.hostname}_extra_storage_4"
+      testing.vm.disk :disk, size: "10GB", name: "#{testing.vm.hostname}_extra_storage"
+      testing.vm.disk :disk, size: "5GB", name: "#{testing.vm.hostname}_extra_storage2"
+      testing.vm.disk :disk, size: "2GB", name: "#{testing.vm.hostname}_extra_storage3"
+      testing.vm.disk :disk, size: "1GB", name: "#{testing.vm.hostname}_extra_storage4"
 
       testing.vm.provider "virtualbox" do |vb|
         vb.memory = "1024"
@@ -30,48 +72,20 @@ Vagrant.configure("2") do |config|
       end    
       # Puedo Ejecutar un script que esta en un archivo
       testing.vm.provision "shell", path: "script_Enable_ssh_password.sh"
-      testing.vm.provision "shell", path: "instala_paquetes.sh"
-      config.vm.provision "shell", privileged: false, inline: <<-SHELL
+      testing.vm.provision "shell", privileged: false, inline: <<-SHELL
       # Los comandos aca se ejecutan como vagrant
   
       mkdir -p /home/vagrant/repogit
       cd /home/vagrant/repogit
+      echo "192.168.56.5 produccion" | sudo tee -a /etc/hosts
 
+      # Copiar la clave pública de testing a produccion
+      ssh-copy-id -i ".vagrant/machines/testing/virtualbox/private_key" vagrant@produccion
+      echo "Cruce de claves SSH completado con éxito."
+      # No requerir pass de sudo
+      echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
+      sudo chmod 0440 /etc/sudoers.d/vagrant
 
     SHELL
     end
-    
-    
-    config.vm.define :produccion do |produccion|
-      produccion.vm.box = "generic/fedora38"
-      produccion.vm.hostname = "produccion"
-      produccion.vm.network "private_network", :name => '', ip: "192.168.56.5"
-      
-      # Comparto la carpeta del host donde estoy parado contra la vm
-      produccion.vm.synced_folder 'compartido_produccion/', '/home/vagrant/compartido'
-  
-    # Agrega la key Privada de ssh en .vagrant/machines/default/virtualbox/private_key
-    produccion.ssh.insert_key = true
-    produccion.vm.provision "shell", path: "script_Enable_ssh_password.sh"
-    produccion.vm.provider "virtualbox" do |vb2|
-      vb2.memory = "1024"
-      vb2.name = "produccion"
-      vb2.cpus = 1
-      vb2.linked_clone = true
-      # Seteo controladora Grafica
-      vb2.customize ['modifyvm', :id, '--graphicscontroller', 'vmsvga']
-    end
-    
-    
-    # Puedo Ejecutar un script que esta en un archivo
-    produccion.vm.provision "shell", path: "script_Enable_ssh_password.sh"
-    
-    # Provisión para instalar
-    produccion.vm.provision "shell", inline: <<-SHELL
-      sudo dnf install -y /home/vagrant/compartido/tree-1.8.0-10.el9.x86_64.rpm
-
-      subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
-      dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-    SHELL
-  end
 end
