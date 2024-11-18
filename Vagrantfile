@@ -29,16 +29,17 @@ Vagrant.configure("2") do |config|
         vb.customize ['modifyvm', :id, '--graphicscontroller', 'vmsvga']      
       end    
       # Puedo Ejecutar un script que esta en un archivo
-      produccion.vm.provision "shell", path: "script_Enable_ssh_password.sh"
+      produccion.vm.provision "shell", path: "scripts/script_Enable_ssh_password.sh"
+      produccion.vm.provision "shell", path: "scripts/instalacion.sh"
+      produccion.vm.provision "shell", path: "scripts/aprovisionamiento.sh"
+      produccion.vm.provision "shell", path: "scripts/lvm.sh"
       produccion.vm.provision "shell", privileged: false, inline: <<-SHELL
       # Los comandos aca se ejecutan como vagrant
   
       mkdir -p /home/vagrant/repogit
       cd /home/vagrant/repogit
       echo "192.168.56.4 testing" | sudo tee -a /etc/hosts
-      
-      # Copiar la clave pública de producción a testing a produccion
-      ssh-copy-id -i ".vagrant/machines/produccion/virtualbox/private_key" vagrant@testing
+
       # No requerir pass de sudo
       echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
       sudo chmod 0440 /etc/sudoers.d/vagrant
@@ -71,7 +72,10 @@ Vagrant.configure("2") do |config|
         vb.customize ['modifyvm', :id, '--graphicscontroller', 'vmsvga']      
       end    
       # Puedo Ejecutar un script que esta en un archivo
-      testing.vm.provision "shell", path: "script_Enable_ssh_password.sh"
+      testing.vm.provision "shell", path: "scripts/script_Enable_ssh_password.sh"
+      testing.vm.provision "shell", path: "scripts/instalacion.sh"
+      testing.vm.provision "shell", path: "scripts/aprovisionamiento.sh"
+      testing.vm.provision "shell", path: "scripts/lvm.sh"
       testing.vm.provision "shell", privileged: false, inline: <<-SHELL
       # Los comandos aca se ejecutan como vagrant
   
@@ -79,13 +83,9 @@ Vagrant.configure("2") do |config|
       cd /home/vagrant/repogit
       echo "192.168.56.5 produccion" | sudo tee -a /etc/hosts
 
-      # Copiar la clave pública de testing a produccion
-      ssh-copy-id -i ".vagrant/machines/testing/virtualbox/private_key" vagrant@produccion
-      echo "Cruce de claves SSH completado con éxito."
       # No requerir pass de sudo
       echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
       sudo chmod 0440 /etc/sudoers.d/vagrant
-
     SHELL
     end
-end
+  end
