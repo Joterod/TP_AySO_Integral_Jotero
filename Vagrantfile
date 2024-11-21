@@ -44,7 +44,9 @@ Vagrant.configure("2") do |config|
       echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
       sudo chmod 0440 /etc/sudoers.d/vagrant
     SHELL
-    end
+    produccion.vm.provision "shell", path: "bash_script/alta_usuarios/alta_usuarios.sh", args: ["/vagrant/bash_script/alta_usuarios/Lista_Usuarios.txt","vagrant"]
+    produccion.vm.provision "shell", path: "bash_script/check_url/check_url.sh", args: ["/vagrant/bash_script/check_url/Lista_URL.txt"]   
+  end
 
   config.vm.define "testing" do |testing|
     testing.vm.box = "ubuntu/jammy64"
@@ -87,5 +89,7 @@ Vagrant.configure("2") do |config|
       echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
       sudo chmod 0440 /etc/sudoers.d/vagrant
     SHELL
-    end
+    testing.vm.provision "shell", path: "bash_script/alta_usuarios/alta_usuarios.sh", args: ["/vagrant/bash_script/alta_usuarios/Lista_Usuarios.txt","vagrant"]
+    testing.vm.provision "shell", path: "bash_script/check_url/check_url.sh", args: ["/vagrant/bash_script/check_url/Lista_URL.txt"]   
   end
+end
