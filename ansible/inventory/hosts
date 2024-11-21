@@ -1,0 +1,10 @@
+[all:children]
+testing
+produccion
+
+[testing]
+192.168.56.5 nsible_ssh_user=vagrant ansible_ssh_pass=vagrant
+
+[produccion]
+192.168.56.4 nsible_ssh_user=vagrant ansible_ssh_pass=vagrant
+localhost ansible_connection=local 

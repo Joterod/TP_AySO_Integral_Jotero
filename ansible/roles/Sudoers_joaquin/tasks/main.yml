@@ -1,0 +1,16 @@
+---
+# tasks file for Sudoers_joaquin
+
+
+- name: "Rol: Sudoers_joaquin - Grupo: joaquin"
+  debug:
+   msg: "Inicio de tareas dentro del Rol: Sudoers_joaquin"
+
+
+- name: "Agregar grupo joaquin a sudoers sin clave"
+  become: yes
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    line: '%joaquin ALL=(ALL) NOPASSWD: ALL'
+

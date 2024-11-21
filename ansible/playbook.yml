@@ -1,0 +1,23 @@
+---
+- hosts: 
+#  - all
+  - testing
+  - produccion
+
+  # Variables Globales
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+
+    - include_role:
+        name: TP_INI
+
+    - include_role:
+        name: Alta_Usuarios_joaquin
+
+    - include_role:
+        name: Sudoers_joaquin
+
+    - include_role:
+        name: Instala-tools_joaquin

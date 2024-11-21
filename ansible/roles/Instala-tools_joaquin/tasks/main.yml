@@ -1,0 +1,17 @@
+---
+# tasks file for Instala-tools_joaquin
+
+
+- name: "Rol: Instala-tools_joaquin - Grupo: joaquin"
+  debug:
+    msg: "Inicio de tareas dentro del Rol: Instala-tools_joaquin"
+
+- name: "Instala herramientas"
+  become: yes
+  package:
+    name:
+      - htop
+      - tmux
+      - speedtest-cli
+    state: present
+

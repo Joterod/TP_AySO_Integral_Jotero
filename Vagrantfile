@@ -1,15 +1,16 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-Vagrant.configure("2") do |config|
 
+Vagrant.configure("2") do |config|
+  project = File.expand_path("./")
   config.vm.define "produccion" do |produccion|
     produccion.vm.box = "generic/fedora36"
     produccion.vm.hostname = "produccion"
     produccion.vm.network "private_network", :name => '', ip: "192.168.56.5"
     
     # Comparto la carpeta del host donde estoy parado contra la vm
-    produccion.vm.synced_folder 'compartido_produccion/', '/home/vagrant/compartido', 
+    produccion.vm.synced_folder project, '/vagrant/', 
     owner: 'vagrant', group: 'vagrant' 
 
       # Agrega la key Privada de ssh en .vagrant/machines/default/virtualbox/private_key
@@ -43,9 +44,13 @@ Vagrant.configure("2") do |config|
       # No requerir pass de sudo
       echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
       sudo chmod 0440 /etc/sudoers.d/vagrant
+            # Ejecutamos el playbook de Ansible
+      cd /vagrant/ansible/
+      reset; ansible-playbook -i inventory/hosts playbook.yml
+      cd
     SHELL
     produccion.vm.provision "shell", path: "bash_script/alta_usuarios/alta_usuarios.sh", args: ["/vagrant/bash_script/alta_usuarios/Lista_Usuarios.txt","vagrant"]
-    produccion.vm.provision "shell", path: "bash_script/check_url/check_url.sh", args: ["/vagrant/bash_script/check_url/Lista_URL.txt"]   
+    produccion.vm.provision "shell", path: "bash_script/check_url/check_url.sh", args: ["/vagrant/bash_script/check_url/Lista_URL.txt"]
   end
 
   config.vm.define "testing" do |testing|
@@ -54,7 +59,7 @@ Vagrant.configure("2") do |config|
     testing.vm.network "private_network", :name => '', ip: "192.168.56.4"
     
     # Comparto la carpeta del host donde estoy parado contra la vm
-    testing.vm.synced_folder 'compartido_testing/', '/home/vagrant/compartido', 
+    testing.vm.synced_folder project ,'/vagrant_testing/', 
     owner: 'vagrant', group: 'vagrant' 
 
       # Agrega la key Privada de ssh en .vagrant/machines/default/virtualbox/private_key
@@ -84,12 +89,16 @@ Vagrant.configure("2") do |config|
       mkdir -p /home/vagrant/repogit
       cd /home/vagrant/repogit
       echo "192.168.56.5 produccion" | sudo tee -a /etc/hosts
-
+      
       # No requerir pass de sudo
       echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
       sudo chmod 0440 /etc/sudoers.d/vagrant
+      
+      # Ejecutamos el playbook de Ansible
+      cd /vagrant_testing/ansible/
+      reset; ansible-playbook -i inventory/hosts playbook.yml
     SHELL
-    testing.vm.provision "shell", path: "bash_script/alta_usuarios/alta_usuarios.sh", args: ["/vagrant/bash_script/alta_usuarios/Lista_Usuarios.txt","vagrant"]
-    testing.vm.provision "shell", path: "bash_script/check_url/check_url.sh", args: ["/vagrant/bash_script/check_url/Lista_URL.txt"]   
+    testing.vm.provision "shell", path: "bash_script/alta_usuarios/alta_usuarios.sh", args: ["/vagrant_testing/bash_script/alta_usuarios/Lista_Usuarios.txt","vagrant"]
+    testing.vm.provision "shell", path: "bash_script/check_url/check_url.sh", args: ["/vagrant_testing/bash_script/check_url/Lista_URL.txt"]
   end
 end

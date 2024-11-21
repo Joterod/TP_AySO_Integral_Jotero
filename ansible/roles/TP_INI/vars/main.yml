@@ -1,0 +1,18 @@
+---
+# vars file for TP_INI
+
+nombre_grupo: "joaquin"
+division: "314"
+fecha: "{{ ansible_date_time.date }}"
+r1_nombre: "Joaquin"
+r1_apellido: "Otero"
+r2_nombre: "Joaquin"
+r2_apellido: "Otero"
+r3_nombre: "Joaquin"
+r3_apellido: "Otero"
+r4_nombre: "Joaquin"
+r4_apellido: "Otero"
+r5_nombre: "Joaquin"
+r5_apellido: "Otero"
+r6_nombre: "Joaquin"
+r6_apellido: "Otero"
